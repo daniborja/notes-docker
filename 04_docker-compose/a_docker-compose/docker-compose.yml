@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:14.6
+    container_name: postgres_db
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: mySecretPass23nsdf
+      POSTGRES_DB: spring_security
+      POSTGRES_USER: adrian
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres   # Named Volume
+      # postgres    ->    /var/lib/postgresql/data
+      # mongo       ->    /data/db
+      # mysql       ->    /var/lib/mysql
+      # mariadb     ->    /var/lib/mysql
+
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '80:80'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+
+
+    # Connection: localhost:80
+      # host: postgres
+      # user: postgres
+
+
+
+# Named Volume: x default crea 1 nuevo con != Replicas  -- solve con  external: true
+volumes:
+  postgres:   # debe existir en nuestros volumes
+    external: true
+  pgadmin:
+    external: true
+      

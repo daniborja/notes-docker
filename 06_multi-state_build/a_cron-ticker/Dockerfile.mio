@@ -1,0 +1,46 @@
+# entity.name.image.stage.dockerfile source.dockerfile
+FROM node:18-alpine3.17 as deps
+
+# cd app
+WORKDIR /app
+
+### COPY . .    <-   ./  hace ref al WORKDRI
+COPY package.json ./
+
+# execute any commands in a NEW LAYER 
+RUN npm i
+
+COPY . .
+
+
+
+
+FROM node:18-alpine3.17 as builder
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY . .
+
+# testing
+RUN npm run test
+
+# RUN npm run build
+
+
+
+
+FROM node:18-alpine3.17 as runner
+
+WORKDIR /app
+
+# COPY --from=builder /app .
+COPY package.json .
+
+# RUN npm ci --only=production
+RUN npm install --prod
+
+COPY . .
+
+CMD [ "npm", "start" ]

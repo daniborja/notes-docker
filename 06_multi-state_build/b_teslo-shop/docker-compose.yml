@@ -1,0 +1,50 @@
+version: '3'
+
+
+services:
+  app:
+    depends_on:
+      - db
+    build:
+      context: .              # path en el q debe buscar el dockerfile
+      dockerfile: Dockerfile  # nombre del dockerfile
+      # W con el    docker compose build > docker compose up
+      target: ${STAGE}             # ref a 1 solo bloque del multi-stage del dockerfile
+    container_name: nest-app
+    volumes:
+      - .:/app
+      # crea 1 Anonymed Volume: mapea nada del host con el path del container
+      - /app/node_modules
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      APP_VERSION: ${APP_VERSION}
+      STAGE: ${STAGE}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      PORT: ${PORT}
+      HOST_API: ${HOST_API}
+      JWT_SECRET: ${JWT_SECRET}
+    # command: yarn start:dev     # en lugar del CMD
+
+  
+
+  db:
+    image: postgres:14.6
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    container_name: ${DB_NAME}
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+
+volumes:
+  postgres-db:
+    external: false

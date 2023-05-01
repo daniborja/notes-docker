@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  db:
+    image: mongo:6.0
+    container_name: ${MONGO_DB_NAME}
+    restart: always
+    ## Mientras + aislado mejor, solo lo utiliza nuestros servicios
+    # ports:
+    #   - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    volumes:
+      - poke-vol:/data/db
+    command: ['--auth'] # si ya se creo el volume sin Auth, se debe eliminar y up de nuevo
+    
+
+  mongo_express:
+    image: mongo-express:1.0.0-alpha.4
+    depends_on:
+      - db
+    container_name: ${MONGO_EXPRESS_NAME}
+    restart: always
+    ports:
+      - 8080:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
+      # es el name q se le asigna al container en la RED, q suele ser el container_name:
+      ME_CONFIG_MONGODB_SERVER: ${MONGO_DB_NAME}
+
+
+  poke_api:
+    image: klerith/pokemon-nest-app:1.0.0
+    depends_on:
+      - db
+      - mongo_express
+    container_name: ${API_NAME}
+    restart: always
+    ports:
+      - 3000:3000
+    environment:
+      MONGODB: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_DB_NAME}:27017
+      DB_NAME: ${MONGO_DB_NAME}
+
+
+volumes:
+  poke-vol:
+    external: false
